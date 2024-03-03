@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import PlusIcon from "../icons/PlusIcon";
 import { useMemo, useState } from "react";
 import { Column, Id, Task } from "../types";
