@@ -1,29 +1,38 @@
-# Stage 1: Build the application
-FROM node:18-alpine AS builder
+# Dockerfile
+# Use Node.js image to build the application
+FROM node:18 AS builder
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json to install dependencies
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the entire application to the container
+# Copy the rest of the application code
 COPY . .
 
-# Build the application for production
+# Build the Next.js application
 RUN npm run build
 
-# Stage 2: Serve the application using NGINX
-FROM nginx:alpine
+# Use a minimal image to run the application
+FROM node:18-slim
 
-# Copy the built files from the previous stage to NGINX's default serving directory
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Set the working directory
+WORKDIR /app
 
-# Expose port 80 to allow access
-EXPOSE 80
+# Copy built application from the builder stage
+COPY --from=builder /app/.next .next
+COPY --from=builder /app/public public
+COPY --from=builder /app/package*.json ./
 
-# Command to start NGINX in the foreground
-CMD ["nginx", "-g", "daemon off;"]
+# Install production dependencies
+RUN npm install --only=production
+
+# Start the application
+CMD ["npm", "start"]
+
+# Expose port 3000
+EXPOSE 3000
